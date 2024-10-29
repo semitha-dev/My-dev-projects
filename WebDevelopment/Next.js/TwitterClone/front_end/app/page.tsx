@@ -2,65 +2,38 @@
 
 import Link from "next/link";
 import React, { useEffect, useState } from 'react';
-import { io, Socket } from "socket.io-client";
+import axios from "axios";
+
+interface Message {
+  content: string;
+  createdAt: string;
+}
 
 const Home: React.FC = () => {
-  const [name , setName] = useState('');
-  const [message , setMessage] = useState('');
-  const [broadcast , setBroadcast] = useState<string[]>([]); // Ensure it's an array
-  const [socket , setSocket] = useState<Socket | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    const socketInstance = io('http://localhost:3000');
-    setSocket(socketInstance);
-
-    // Handle broadcast messages
-    socketInstance.on('broadcast', (data) => {
-      setBroadcast((prevBroadcast) => [...prevBroadcast, data]); // Append new message
-    });
-
-    return () => {
-      socketInstance.disconnect();
+    const fetchMessages = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/getPosts");
+        setMessages(response.data);
+      } catch (error) {
+        console.log("Error fetching messages:", error);
+      }
     };
-  }, []);
 
-  const sendMessage = () => {
-    if (socket){
-      socket.emit('message' , {name , message});
-    }
-  };
+    fetchMessages();
+  }, []);
 
   return (
     <div>
-
-      <h1 className=" text-white bg-slate-400 flex justify-center text-3xl p-3">WhatsUp Messanger</h1>
-      
-      <div className="flex justify-center items-center bg-slate-400 mt-16 w-96 mx-auto h-56 flex-col 
-        text-black rounded">
-          <label>Name : </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mr-2 p-2 rounded"
-          /><br></br>
-          <label>Message : </label>
-
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="mr-2 p-2 rounded"
-          /><br></br>
-          
-          <button onClick={sendMessage} className="p-2 bg-blue-500 text-white rounded">Send</button>
-        </div>
-
-
-      <h1 className=" flex justify-center bg-slate-400 mt-6">Broadcast Messages:</h1>
-      <ul className="flex justify-center flex-col items-center">
-        {broadcast.map((msg, index) => (
-          <li className="bg-slate-400 m-2 w-96  h-20 rounded-md p-2" key={index}>{msg}</li>
+      <h3>Home</h3>
+      <ul className="flex flex-col items-center"> {/* Center align messages */}
+        {messages.map((message, index) => (
+          <li key={index} className="text-white flex flex-col justify-between items-start m-3 rounded bg-slate-400 max-w-md w-full p-4"> {/* Changed justify-center to justify-between */}
+            <p className="mb-2">{message.content}</p> {/* Added margin bottom for spacing */}
+            <small className="self-end">{new Date(message.createdAt).toLocaleString()}</small> {/* Aligned date to the right */}
+          </li>
         ))}
       </ul>
     </div>

@@ -1,31 +1,41 @@
 const express = require('express');
+const cors = require('cors'); // Import CORS
 const http = require('http');
-const { Server } = require('socket.io');
+const connectDB = require('./db');
+const Message = require('./models/newpostmodel');
+
+// Connect to the database
+connectDB();
 
 const app = express();
-const server = http.createServer(app); // Use the app in the server
+app.use(cors()); // Enable CORS for all routes
+app.use(express.json());
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
+// Route to add a new post
+app.post('/addPost', async (req, res) => {
+  try {
+    const { content } = req.body;
+    const newMessage = new Message({ content });
+    await newMessage.save();
+    res.status(201).send('Post added');
+  } catch (error) {
+    console.error('Error saving message:', error); // Log the error to the console
+    res.status(500).send('Error saving message');
+  }
 });
 
-io.on('connection', (socket) => {
-  console.log('A user has connected');
-
-  socket.on('message', (data) => {
-    const { name, message } = data;
-    io.emit('broadcast', `${name}: ${message}`); // Emit message back to all connected clients
-  });
-
-  socket.on('disconnect', () => {
-    console.log('A user has disconnected');
-  });
+app.get('/getPosts', async (req, res) => { 
+  try {
+    const messages = await Message.find();
+    res.send(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error); // Log the error to the console
+    res.status(500).send('Error fetching messages');
+  }
 });
 
-// Make sure you are using `server.listen()` instead of `app.listen()`
-const PORT = 3000;
-server.listen(PORT, () => {
+const PORT = 3001;
+
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
