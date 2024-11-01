@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { SideBar } from "./sideBar";
+import { SidebarProvider } from "./SidebarContext.tsx"; // Import SidebarProvider
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,12 +28,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <div className="flex h-screen "> {/* Set height to full screen */}
-          <SideBar />
-          <div className="flex-grow p-4"> {/* This area can be used for main content */}
-            {children}
+        <SidebarProvider> {/* Wrap in SidebarProvider */}
+          <div className="flex h-screen">
+            <SideBar /> {/* Sidebar can now access sideBarName from context */}
+            <div className="flex-grow p-4">
+              {children}
+            </div>
           </div>
-        </div>
+        </SidebarProvider>
       </body>
     </html>
   );
