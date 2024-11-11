@@ -28,10 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <SidebarProvider> {/* Wrap in SidebarProvider */}
+        <SidebarProvider>
           <div className="flex h-screen">
-            <SideBar /> {/* Sidebar can now access sideBarName from context */}
-            <div className="flex-grow p-4">
+            <div className="sticky top-0 h-full bg-gray-100"> 
+              <SideBar /> 
+            </div>
+            <div className="flex-grow p-4 overflow-y-auto">
               {children}
             </div>
           </div>

@@ -6,15 +6,14 @@ const Message = require('./models/newpostmodel');
 const userSignUp = require('./models/usersignup'); 
 const session = require('express-session');
 const userdetail = require('./models/usersignup'); 
-connectDB(); // Connects to MongoDB
+connectDB(); 
 
 const app = express();
 app.use(cors()); 
 app.use(express.json());
 
-// Session configuration
 app.use(session({
-  secret: 'GigaNiga',
+  secret: 'sf5584sf755sf7s',
   resave: false,
   saveUninitialized: false,    
   cookie: {
@@ -23,11 +22,10 @@ app.use(session({
   }
 }));
 
-// Route to add a post
 app.post('/addPost', async (req, res) => {
   try {
-    const { content, username } = req.body;  // Extract content and username
-    const newMessage = new Message({ content, username });  // Include username
+    const { content, username } = req.body;  
+    const newMessage = new Message({ content, username });  
     await newMessage.save();
     res.status(201).send('Post added');
   } catch (error) {
@@ -36,7 +34,6 @@ app.post('/addPost', async (req, res) => {
   }
 });
 
-// Route to retrieve posts
 app.get('/getPosts', async (req, res) => { 
   try {
     const messages = await Message.find();
@@ -47,7 +44,6 @@ app.get('/getPosts', async (req, res) => {
   }
 });
 
-// Route for user signup
 app.post('/userSignUp', async (req, res) => {
   const { Name, password } = req.body;
   try {
@@ -60,17 +56,14 @@ app.post('/userSignUp', async (req, res) => {
   }
 });
 
-// Route for user login
 app.post('/userLogin', async (req, res) => {
   const { Name, password } = req.body; 
   try {
     const user = await userdetail.findOne({ Name }); 
 
-    // Check if user exists and password matches
     if (user && user.password === password) {
       req.session.user = { id: user._id, username: user.Name };
 
-      // Save session to ensure immediate persistence
       req.session.save((err) => {
         if (err) {
           console.error('Session save error:', err);
@@ -87,7 +80,6 @@ app.post('/userLogin', async (req, res) => {
   }
 });
 
-// Route to check if user is logged in
 app.get('/checklogin', async (req, res) => {
   try {
     if (req.session && req.session.user) {
@@ -101,6 +93,49 @@ app.get('/checklogin', async (req, res) => {
   }
 });
 
+
+app.get('/getSpecificPost/:id', async (req, res) => {
+  try {
+    const post = await Message.findById(req.params.id);
+    if (!post) {
+      return res.status(404).send({ error: "Post doesn't exist!" });
+    }
+    res.json(post);
+  } catch (error) {
+    console.error('Error fetching specific post:', error);
+    res.status(500).send('Error fetching specific post');
+  }
+});
+app.post('/addReply', async (req, res) => {
+  const { postId, content, username } = req.body;
+  try {
+    const post = await Message.findById(postId);
+    post.replies.push({ content, username });
+    await post.save();
+    res.status(201).send('Reply added');
+  } catch (error) {
+    console.error('Error adding reply:', error);
+    res.status(500).send('Error adding reply');
+  }
+});
+
+app.post('/getUsers', async (req, res) => {
+  const {Name} = req.body;
+  try{
+    const user = await userdetail.findOne({Name});
+    if(!user){
+      res.status(404).send('User not found');
+    }else{
+      res.json(user);
+    }
+    
+  }catch(error){
+    console.error('Error fetching user:', error);
+    res.status(500).send('Error fetching user');
+  }
+  
+
+})
 const PORT = 3001;
 
 app.listen(PORT, () => {

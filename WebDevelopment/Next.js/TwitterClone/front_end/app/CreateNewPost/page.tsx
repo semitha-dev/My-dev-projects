@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useSidebar } from '../SidebarContext.tsx';
+import Image from 'next/image'; 
+import backgroundImage from '../james.jpg'; 
 
 const SendMessage = () => {
   const [message, setMessage] = useState<string>('');
@@ -22,11 +24,11 @@ const SendMessage = () => {
       const response = await axios.post('http://localhost:3001/addPost', { 
         content: message, 
         username: sideBarName  
-       });
+      });
       setStatus('Message sent successfully');
-      setMessage(''); // Clear the input
-      setWarning(''); // Clear any warnings
-    } catch (error: any) { // Type assertion here
+      setMessage(''); 
+      setWarning(''); 
+    } catch (error: any) {
       if (error.response) {
         setStatus(`Failed to send message: ${error.response.data}`);
       } else {
@@ -36,22 +38,32 @@ const SendMessage = () => {
   };
 
   return (
-    <div className='flex flex-col justify-center items-center'>
-      <h1 className='text-3xl mb-20'>Create a Post</h1>
-      <form onSubmit={handleSubmit}>
-        <textarea
-          className='border border-gray-300 p-2 w-96 h-32 text-black'
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type your message here"
-          required
-        ></textarea><br />
-        <button type="submit" className='bg-green-600 p-2 pr-4 rounded-md'>Send</button>
-      </form>
-      <div className='text-red-800'>
-        {warning}
+    <div className="relative flex flex-col items-center min-h-screen">
+      
+      <Image
+        src={backgroundImage}
+        alt="Background"
+        layout="fill" 
+        objectFit="cover" 
+        className="z-0"
+      />
+      <div className='bg-[#1c1c1c] bg-opacity-80 p-8 rounded-lg shadow-md max-w-md mx-auto z-10'>
+        <h1 className='text-3xl font-bold text-white mb-6'>Create a Post</h1>
+        <form onSubmit={handleSubmit} className='w-full'>
+          <textarea
+            className='w-full h-32 p-4 border border-gray-700 bg-[#2a2a2a] text-white rounded-md focus:outline-none focus:ring focus:ring-blue-500'
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type your message here"
+            required
+          />
+          <button type="submit" className='w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-200 mt-4'>
+            Send
+          </button>
+        </form>
+        {warning && <div className='mt-4 text-red-500'>{warning}</div>}
+        {status && <p className='mt-2 text-green-500'>{status}</p>}
       </div>
-      {status && <p>{status}</p>}
     </div>
   );
 };
